@@ -92,7 +92,7 @@ class HtmlSanitizerConfig
      */
     private array $attributeSanitizers;
 
-    private int $maxInputLength = 20_000;
+    private ?int $maxInputLength = 20_000;
 
     public function __construct()
     {
@@ -407,7 +407,7 @@ class HtmlSanitizerConfig
         return $clone;
     }
 
-    public function withMaxInputLength(int $maxInputLength): static
+    public function withMaxInputLength(?int $maxInputLength): static
     {
         $clone = clone $this;
         $clone->maxInputLength = $maxInputLength;
@@ -415,7 +415,7 @@ class HtmlSanitizerConfig
         return $clone;
     }
 
-    public function getMaxInputLength(): int
+    public function getMaxInputLength(): ?int
     {
         return $this->maxInputLength;
     }

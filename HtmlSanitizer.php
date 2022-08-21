@@ -62,8 +62,8 @@ final class HtmlSanitizer implements HtmlSanitizerInterface
         $this->domVisitors[$context] ??= $this->createDomVisitorForContext($context);
 
         // Prevent DOS attack induced by extremely long HTML strings
-        if (\strlen($input) > $this->config->getMaxInputLength()) {
-            $input = substr($input, 0, $this->config->getMaxInputLength());
+		if (null !== ($maxInputLength = $this->config->getMaxInputLength()) && \strlen($input) > $maxInputLength) {
+            $input = substr($input, 0, $maxInputLength);
         }
 
         // Only operate on valid UTF-8 strings. This is necessary to prevent cross
