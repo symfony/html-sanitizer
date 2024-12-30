@@ -94,7 +94,13 @@ final class UrlSanitizer
         }
 
         try {
-            return UriString::parse($url);
+            $parsedUrl = UriString::parse($url);
+
+            if (preg_match('/\s/', $url)) {
+                return null;
+            }
+
+            return $parsedUrl;
         } catch (SyntaxError) {
             return null;
         }
