@@ -100,6 +100,10 @@ final class UrlSanitizer
                 return null;
             }
 
+            if (isset($parsedUrl['host']) && self::decodeUnreservedCharacters($parsedUrl['host']) !== $parsedUrl['host']) {
+                return null;
+            }
+
             return $parsedUrl;
         } catch (SyntaxError) {
             return null;
@@ -138,5 +142,17 @@ final class UrlSanitizer
         }
 
         return true;
+    }
+
+    /**
+     * Implementation borrowed from League\Uri\Encoder::decodeUnreservedCharacters().
+     */
+    private static function decodeUnreservedCharacters(string $host): string
+    {
+        return preg_replace_callback(
+            ',%(2[1-9A-Fa-f]|[3-7][0-9A-Fa-f]|61|62|64|65|66|7[AB]|5F),',
+            static fn (array $matches): string => rawurldecode($matches[0]),
+            $host
+        );
     }
 }
