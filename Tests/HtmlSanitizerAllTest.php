@@ -11,6 +11,7 @@
 
 namespace Symfony\Component\HtmlSanitizer\Tests;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HtmlSanitizer\HtmlSanitizer;
 use Symfony\Component\HtmlSanitizer\HtmlSanitizerAction;
@@ -31,9 +32,7 @@ class HtmlSanitizerAllTest extends TestCase
         );
     }
 
-    /**
-     * @dataProvider provideSanitizeHead
-     */
+    #[DataProvider('provideSanitizeHead')]
     public function testSanitizeHead(string $input, string $expected)
     {
         $this->assertSame($expected, $this->createSanitizer()->sanitizeFor('head', $input));
@@ -64,9 +63,7 @@ class HtmlSanitizerAllTest extends TestCase
         }
     }
 
-    /**
-     * @dataProvider provideSanitizeBody
-     */
+    #[DataProvider('provideSanitizeBody')]
     public function testSanitizeBody(string $input, string $expected)
     {
         $this->assertSame($expected, $this->createSanitizer()->sanitize($input));
