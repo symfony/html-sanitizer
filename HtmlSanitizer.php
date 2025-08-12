@@ -12,6 +12,7 @@
 namespace Symfony\Component\HtmlSanitizer;
 
 use Symfony\Component\HtmlSanitizer\Parser\MastermindsParser;
+use Symfony\Component\HtmlSanitizer\Parser\NativeParser;
 use Symfony\Component\HtmlSanitizer\Parser\ParserInterface;
 use Symfony\Component\HtmlSanitizer\Reference\W3CReference;
 use Symfony\Component\HtmlSanitizer\TextSanitizer\StringSanitizer;
@@ -34,24 +35,20 @@ final class HtmlSanitizer implements HtmlSanitizerInterface
         ?ParserInterface $parser = null,
     ) {
         $this->config = $config;
-        $this->parser = $parser ?? new MastermindsParser();
+        $this->parser = $parser ?? (\PHP_VERSION_ID < 80400 ? new MastermindsParser() : new NativeParser());
     }
 
     public function sanitize(string $input): string
     {
-        return $this->sanitizeWithContext(W3CReference::CONTEXT_BODY, $input);
+        return $this->sanitizeFor(W3CReference::CONTEXT_BODY, $input);
     }
 
     public function sanitizeFor(string $element, string $input): string
     {
-        return $this->sanitizeWithContext(
-            W3CReference::CONTEXTS_MAP[StringSanitizer::htmlLower($element)] ?? W3CReference::CONTEXT_BODY,
-            $input
-        );
-    }
+        $element = StringSanitizer::htmlLower($element);
+        $context = W3CReference::CONTEXTS_MAP[$element] ?? W3CReference::CONTEXT_BODY;
+        $element = isset(W3CReference::BODY_ELEMENTS[$element]) ? $element : $context;
 
-    private function sanitizeWithContext(string $context, string $input): string
-    {
         // Text context: early return with HTML encoding
         if (W3CReference::CONTEXT_TEXT === $context) {
             return StringSanitizer::encodeHtmlEntities($input);
@@ -71,11 +68,11 @@ final class HtmlSanitizer implements HtmlSanitizerInterface
             return '';
         }
 
-        // Remove NULL character
-        $input = str_replace(\chr(0), '', $input);
+        // Remove NULL character and HTML entities for null byte
+        $input = str_replace([\chr(0), '&#0;', '&#x00;', '&#X00;', '&#000;'], '�', $input);
 
         // Parse as HTML
-        if (!$parsed = $this->parser->parse($input)) {
+        if ('' === trim($input) || !$parsed = $this->parser->parse($input, $element)) {
             return '';
         }
 
