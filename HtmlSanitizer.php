@@ -11,7 +11,6 @@
 
 namespace Symfony\Component\HtmlSanitizer;
 
-use Symfony\Component\HtmlSanitizer\Parser\MastermindsParser;
 use Symfony\Component\HtmlSanitizer\Parser\NativeParser;
 use Symfony\Component\HtmlSanitizer\Parser\ParserInterface;
 use Symfony\Component\HtmlSanitizer\Reference\W3CReference;
@@ -35,7 +34,7 @@ final class HtmlSanitizer implements HtmlSanitizerInterface
         ?ParserInterface $parser = null,
     ) {
         $this->config = $config;
-        $this->parser = $parser ?? (\PHP_VERSION_ID < 80400 ? new MastermindsParser() : new NativeParser());
+        $this->parser = $parser ?? new NativeParser();
     }
 
     public function sanitize(string $input): string
