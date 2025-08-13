@@ -68,7 +68,7 @@ final class HtmlSanitizer implements HtmlSanitizerInterface
         }
 
         // Remove NULL character and HTML entities for null byte
-        $input = str_replace([\chr(0), '&#0;', '&#x00;', '&#X00;', '&#000;'], '�', $input);
+        $input = str_replace(\chr(0), '�', $input);
 
         // Parse as HTML
         if ('' === trim($input) || !$parsed = $this->parser->parse($input, $element)) {
