@@ -33,7 +33,6 @@ final class HtmlSanitizer implements HtmlSanitizerInterface
         private HtmlSanitizerConfig $config,
         ?ParserInterface $parser = null,
     ) {
-        $this->config = $config;
         $this->parser = $parser ?? new NativeParser();
     }
 
