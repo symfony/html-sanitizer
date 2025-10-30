@@ -569,6 +569,23 @@ class HtmlSanitizerAllTest extends TestCase
         }
     }
 
+    public function testIFrameDefaultsAreSafe()
+    {
+        $sanitizer = new HtmlSanitizer((new HtmlSanitizerConfig())
+            ->allowElement('iframe', '*')
+        );
+        $input = '<iframe src="javascript:alert()" onload="alert()" srcdoc="<script>alert()</script>">XSS</iframe>';
+        $this->assertSame('<iframe>XSS</iframe>', $sanitizer->sanitize($input));
+
+        $sanitizer = new HtmlSanitizer((new HtmlSanitizerConfig())
+            ->allowElement('iframe', '*')
+            ->allowAttribute('srcdoc', 'iframe')
+            ->forceAttribute('iframe', 'sandbox', '')
+        );
+        $input = '<iframe src="javascript:alert()" onload="alert()" srcdoc="<script>alert()</script>">XSS-prevented by sandbox</iframe>';
+        $this->assertSame('<iframe srcdoc="&lt;script&gt;alert()&lt;/script&gt;" sandbox>XSS-prevented by sandbox</iframe>', $sanitizer->sanitize($input));
+    }
+
     public function testUnlimitedLength()
     {
         $sanitizer = new HtmlSanitizer((new HtmlSanitizerConfig())->withMaxInputLength(-1));
