@@ -423,6 +423,86 @@ class HtmlSanitizerCustomTest extends TestCase
         );
     }
 
+    public function testActionAttributeIsSanitized()
+    {
+        $config = (new HtmlSanitizerConfig())
+            ->allowElement('form', ['action'])
+        ;
+
+        $this->assertSame(
+            '<form>Hello world</form>',
+            $this->sanitize($config, '<form action="javascript:alert(1)">Hello world</form>')
+        );
+
+        $this->assertSame(
+            '<form>Hello world</form>',
+            $this->sanitize($config, '<form action="data:text/html,foo">Hello world</form>')
+        );
+
+        $this->assertSame(
+            '<form action="https://symfony.com">Hello world</form>',
+            $this->sanitize($config, '<form action="https://symfony.com">Hello world</form>')
+        );
+    }
+
+    public function testFormactionAttributeIsSanitized()
+    {
+        $config = (new HtmlSanitizerConfig())
+            ->allowElement('button', ['formaction'])
+            ->allowElement('input', ['type', 'formaction'])
+        ;
+
+        $this->assertSame(
+            '<button>Submit</button>',
+            $this->sanitize($config, '<button formaction="javascript:alert(1)">Submit</button>')
+        );
+
+        $this->assertSame(
+            '<input type="image" />',
+            $this->sanitize($config, '<input type="image" formaction="javascript:alert(1)">')
+        );
+
+        $this->assertSame(
+            '<button formaction="https://symfony.com">Submit</button>',
+            $this->sanitize($config, '<button formaction="https://symfony.com">Submit</button>')
+        );
+    }
+
+    public function testPosterAttributeIsSanitized()
+    {
+        $config = (new HtmlSanitizerConfig())
+            ->allowElement('video', ['poster'])
+        ;
+
+        $this->assertSame(
+            '<video>Hello world</video>',
+            $this->sanitize($config, '<video poster="javascript:alert(1)">Hello world</video>')
+        );
+
+        $this->assertSame(
+            '<video poster="https://symfony.com/poster.jpg">Hello world</video>',
+            $this->sanitize($config, '<video poster="https://symfony.com/poster.jpg">Hello world</video>')
+        );
+    }
+
+    public function testCiteAttributeIsSanitized()
+    {
+        $config = (new HtmlSanitizerConfig())
+            ->allowElement('blockquote', ['cite'])
+            ->allowElement('q', ['cite'])
+        ;
+
+        $this->assertSame(
+            '<blockquote>Hello world</blockquote>',
+            $this->sanitize($config, '<blockquote cite="javascript:alert(1)">Hello world</blockquote>')
+        );
+
+        $this->assertSame(
+            '<q cite="https://symfony.com">Hello world</q>',
+            $this->sanitize($config, '<q cite="https://symfony.com">Hello world</q>')
+        );
+    }
+
     public function testCustomAttributeSanitizer()
     {
         $config = (new HtmlSanitizerConfig())
