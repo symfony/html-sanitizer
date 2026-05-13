@@ -323,6 +323,24 @@ class HtmlSanitizerCustomTest extends TestCase
         );
     }
 
+    public function testAreaUsesLinkPolicy()
+    {
+        $config = (new HtmlSanitizerConfig())
+            ->allowElement('area', ['href'])
+            ->allowLinkHosts(['trusted.com'])
+        ;
+
+        $this->assertSame(
+            '<area href="https://trusted.com" />',
+            $this->sanitize($config, '<area href="https://trusted.com">')
+        );
+
+        $this->assertSame(
+            '<area />',
+            $this->sanitize($config, '<area href="https://untrusted.com">')
+        );
+    }
+
     public function testAllowLinksRelative()
     {
         $config = (new HtmlSanitizerConfig())

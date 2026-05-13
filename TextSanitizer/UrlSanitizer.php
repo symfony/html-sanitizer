@@ -35,6 +35,10 @@ final class UrlSanitizer
             return null;
         }
 
+        if (false !== strpbrk($input, '\\') || preg_match('~^(?:https?|ftp|wss?):(/[^/]|///)~i', $input)) {
+            return null;
+        }
+
         $url = self::parse($input);
 
         // Malformed URL
