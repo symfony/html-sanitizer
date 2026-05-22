@@ -539,7 +539,7 @@ class UrlSanitizerTest extends TestCase
             'http://example.com/@asdf%40' => ['scheme' => 'http', 'host' => 'example.com'],
             'http://example.com/你好你好' => ['scheme' => 'http', 'host' => 'example.com'],
             'http://example.com/‥/foo' => ['scheme' => 'http', 'host' => 'example.com'],
-            "http://example.com/\u{feff}/foo" => ['scheme' => 'http', 'host' => 'example.com'],
+            "http://example.com/\u{feff}/foo" => null,
             "http://example.com\u{002f}\u{202e}\u{002f}\u{0066}\u{006f}\u{006f}\u{002f}\u{202d}\u{002f}\u{0062}\u{0061}\u{0072}\u{0027}\u{0020}" => null,
             'http://www.google.com/foo?bar=baz#' => ['scheme' => 'http', 'host' => 'www.google.com'],
             'http://www.google.com/foo?bar=baz# »' => ['scheme' => 'http', 'host' => 'www.google.com'],
@@ -597,7 +597,7 @@ class UrlSanitizerTest extends TestCase
             'file:..' => ['scheme' => 'file', 'host' => null],
             'file:a' => ['scheme' => 'file', 'host' => null],
             'http://ExAmPlE.CoM' => ['scheme' => 'http', 'host' => 'ExAmPlE.CoM'],
-            "http://GOO\u{200b}\u{2060}\u{feff}goo.com" => ['scheme' => 'http', 'host' => "GOO\u{200b}\u{2060}\u{feff}goo.com"],
+            "http://GOO\u{200b}\u{2060}\u{feff}goo.com" => null,
             'http://www.foo。bar.com' => ['scheme' => 'http', 'host' => 'www.foo。bar.com'],
             'https://x/�?�#�' => ['scheme' => 'https', 'host' => 'x'],
             'http://Ｇｏ.com' => ['scheme' => 'http', 'host' => 'Ｇｏ.com'],
@@ -862,6 +862,25 @@ class UrlSanitizerTest extends TestCase
             "http://example.com/\u{2066}bar with space" => null,
             "http://example.com/\u{2069}bar" => null,
             "http://example.com\u{202E}/foo" => null,
+
+            // Percent-encoded BiDi formatting characters must also be rejected
+            'http://example.com/login.html#%E2%80%AE/moc.lave.www//:ptth' => null,
+            'http://example.com/x?q=%E2%80%AD' => null,
+            'http://example.com/?r=%E2%80%AB' => null,
+            'http://example.com/#%E2%81%A6' => null,
+            'http://example.com/?p=%E2%81%A9' => null,
+            'http://example.com/%e2%80%ae/x' => null,
+
+            // Unicode whitespace must be rejected (raw and percent-encoded)
+            "http://example.com/foo\u{00A0}bar" => null,
+            "http://example.com/\u{2028}bar" => null,
+            "http://example.com/\u{2029}bar" => null,
+            "http://example.com/\u{3000}bar" => null,
+            "http://example.com/\u{205F}bar" => null,
+            "http://example.com/\u{FEFF}bar" => null,
+            'http://example.com/foo%C2%A0bar' => null,
+            'http://example.com/%E2%80%A8bar' => null,
+            'http://example.com/%E3%80%80bar' => null,
         ];
 
         foreach ($urls as $url => $expected) {
