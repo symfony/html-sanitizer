@@ -531,6 +531,45 @@ class HtmlSanitizerCustomTest extends TestCase
         );
     }
 
+    public function testWildcardAttributeSanitizerIsCalled()
+    {
+        $config = (new HtmlSanitizerConfig())
+            ->allowElement('div', ['data-foo', 'data-bar'])
+            ->withAttributeSanitizer(new class implements AttributeSanitizerInterface {
+                public function getSupportedElements(): ?array
+                {
+                    return null;
+                }
+
+                public function getSupportedAttributes(): ?array
+                {
+                    return null;
+                }
+
+                public function sanitizeAttribute(string $element, string $attribute, string $value, HtmlSanitizerConfig $config): ?string
+                {
+                    return strrev($value);
+                }
+            })
+        ;
+
+        $this->assertSame(
+            '<div data-foo="cba" data-bar="zyx">Hello world</div>',
+            $this->sanitize($config, '<div data-foo="abc" data-bar="xyz">Hello world</div>')
+        );
+    }
+
+    public function testMaxInputLengthIsAppliedToTextContext()
+    {
+        $config = (new HtmlSanitizerConfig());
+
+        $input = str_repeat('A', $config->getMaxInputLength() + 100);
+        $expected = str_repeat('A', $config->getMaxInputLength());
+
+        $this->assertSame($expected, (new HtmlSanitizer($config))->sanitizeFor('textarea', $input));
+        $this->assertSame($expected, (new HtmlSanitizer($config))->sanitizeFor('title', $input));
+    }
+
     private function sanitize(HtmlSanitizerConfig $config, string $input): string
     {
         return (new HtmlSanitizer($config))->sanitize($input);
