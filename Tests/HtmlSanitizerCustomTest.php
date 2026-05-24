@@ -503,6 +503,79 @@ class HtmlSanitizerCustomTest extends TestCase
         );
     }
 
+    /**
+     * @dataProvider provideUrlAttributesSanitizedAcrossEmbeddingElements
+     */
+    public function testUrlAttributesAreSanitizedAcrossEmbeddingElements(string $element, string $attribute, string $input, string $expected)
+    {
+        $config = (new HtmlSanitizerConfig())
+            ->allowElement($element, [$attribute])
+        ;
+
+        $this->assertSame($expected, $this->sanitize($config, $input));
+    }
+
+    public static function provideUrlAttributesSanitizedAcrossEmbeddingElements(): iterable
+    {
+        yield 'object data javascript:' => [
+            'object', 'data',
+            '<object data="javascript:alert(1)">x</object>',
+            '<object>x</object>',
+        ];
+        yield 'object data http kept' => [
+            'object', 'data',
+            '<object data="https://symfony.com/x">x</object>',
+            '<object data="https://symfony.com/x">x</object>',
+        ];
+        yield 'applet codebase javascript:' => [
+            'applet', 'codebase',
+            '<applet codebase="javascript:alert(1)">x</applet>',
+            '<applet>x</applet>',
+        ];
+        yield 'applet archive javascript:' => [
+            'applet', 'archive',
+            '<applet archive="javascript:alert(1)">x</applet>',
+            '<applet>x</applet>',
+        ];
+        yield 'object codebase javascript:' => [
+            'object', 'codebase',
+            '<object codebase="javascript:alert(1)">x</object>',
+            '<object>x</object>',
+        ];
+        yield 'iframe longdesc javascript:' => [
+            'iframe', 'longdesc',
+            '<iframe longdesc="javascript:alert(1)">x</iframe>',
+            '<iframe>x</iframe>',
+        ];
+        yield 'img longdesc javascript:' => [
+            'img', 'longdesc',
+            '<img longdesc="javascript:alert(1)">',
+            '<img />',
+        ];
+    }
+
+    public function testMetaRefreshContentIsSanitized()
+    {
+        $config = (new HtmlSanitizerConfig())
+            ->allowElement('meta', ['http-equiv', 'content'])
+        ;
+
+        $this->assertSame(
+            '<meta http-equiv="refresh" />',
+            (new HtmlSanitizer($config))->sanitizeFor('head', '<meta http-equiv="refresh" content="0; url=javascript:alert(1)">')
+        );
+
+        $this->assertSame(
+            '<meta http-equiv="refresh" content="5; url&#61;https://symfony.com/" />',
+            (new HtmlSanitizer($config))->sanitizeFor('head', '<meta http-equiv="refresh" content="5; url=https://symfony.com/">')
+        );
+
+        $this->assertSame(
+            '<meta http-equiv="refresh" content="5" />',
+            (new HtmlSanitizer($config))->sanitizeFor('head', '<meta http-equiv="refresh" content="5">')
+        );
+    }
+
     public function testCustomAttributeSanitizer()
     {
         $config = (new HtmlSanitizerConfig())

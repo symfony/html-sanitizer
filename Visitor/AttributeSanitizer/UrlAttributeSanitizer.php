@@ -27,7 +27,7 @@ final class UrlAttributeSanitizer implements AttributeSanitizerInterface
 
     public function getSupportedAttributes(): ?array
     {
-        return ['src', 'href', 'lowsrc', 'background', 'ping', 'action', 'formaction', 'poster', 'cite'];
+        return ['src', 'href', 'lowsrc', 'background', 'ping', 'action', 'formaction', 'poster', 'cite', 'data', 'codebase', 'archive', 'longdesc'];
     }
 
     public function sanitizeAttribute(string $element, string $attribute, string $value, HtmlSanitizerConfig $config): ?string
