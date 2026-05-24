@@ -105,6 +105,7 @@ class HtmlSanitizerConfig
     {
         $this->attributeSanitizers = [
             new Visitor\AttributeSanitizer\UrlAttributeSanitizer(),
+            new Visitor\AttributeSanitizer\MetaRefreshAttributeSanitizer(),
         ];
     }
 
