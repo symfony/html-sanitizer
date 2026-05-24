@@ -20,6 +20,13 @@ use League\Uri\UriString;
 final class UrlSanitizer
 {
     /**
+     * Characters with no legitimate place in a URL: explicit-direction BiDi
+     * formatting marks plus Unicode whitespace and the zero-width no-break
+     * space. ASCII space is tolerated and percent-encoded by parse().
+     */
+    private const DENIED_CHARS_PATTERN = '/[\t\n\v\f\r\x{0085}\x{00A0}\x{1680}\x{2000}-\x{200A}\x{2028}\x{2029}\x{202F}\x{205F}\x{3000}\x{FEFF}\x{202A}-\x{202E}\x{2066}-\x{2069}]/u';
+
+    /**
      * Sanitizes a given URL string.
      *
      * In addition to ensuring $input is a valid URL, this sanitizer checks that:
@@ -98,10 +105,11 @@ final class UrlSanitizer
         }
 
         try {
-            // Reject explicit-direction BiDi formatting characters: they have no
-            // legitimate place in a URL and enable visual spoofing of the rendered
-            // href when the URL is later embedded in HTML.
-            if (preg_match('/[\x{202A}-\x{202E}\x{2066}-\x{2069}]/u', $url)) {
+            // Reject explicit-direction BiDi formatting characters and non-space
+            // whitespace: they have no legitimate place in a URL and enable
+            // visual spoofing of the rendered href when the URL is later
+            // embedded in HTML or decoded by a downstream consumer.
+            if (preg_match(self::DENIED_CHARS_PATTERN, $url)) {
                 return null;
             }
 
@@ -137,6 +145,14 @@ final class UrlSanitizer
 
             if (isset($parsedUrl['host']) && self::decodeUnreservedCharacters($parsedUrl['host']) !== $parsedUrl['host']) {
                 return null;
+            }
+
+            // Reject denied characters reachable via percent-encoding in any
+            // component; otherwise the upfront check is bypassed by encoding.
+            foreach (['user', 'pass', 'host', 'path', 'query', 'fragment'] as $part) {
+                if (isset($parsedUrl[$part]) && preg_match(self::DENIED_CHARS_PATTERN, rawurldecode($parsedUrl[$part]))) {
+                    return null;
+                }
             }
 
             return $parsedUrl;
