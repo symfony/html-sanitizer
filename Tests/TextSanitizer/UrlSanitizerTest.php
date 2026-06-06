@@ -881,7 +881,7 @@ class UrlSanitizerTest extends TestCase
         ];
 
         foreach ($urls as $url => $expected) {
-            yield $url => [$url, $expected];
+            yield ('' === $url ? 'empty string' : $url) => [$url, $expected];
         }
     }
 }
